@@ -2,32 +2,37 @@ from Coin import CoinInfo, BuiltInCoin
 from datetime import datetime, date
 from CMCBrowserUtils import getBrowser, WebDriverWait, EC, By
 import requests, json
-from InfluxDBService import Point, insertData
+from InfluxDBService import insertData, query
 import dateutil.parser
 import Config
+from dto.QuoteDto import Point
 
 
 # https://web-api.coinmarketcap.com/v1/cryptocurrency/ohlcv/historical?id=1&convert=USD&time_start=1201245530&time_end=1615218330
+
 
 class CoinFetcher:
 
     def __init__(self, ci: CoinInfo):
         self.info = ci
 
-    def goToHistoricalPage(self):
-        bser = getBrowser()
-        sd = date(2007, 1, 1)
-        bser.get(self.info.getDateHistoricalUrl(sd, datetime.now()))
-        WebDriverWait(bser, 20).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".reply-button"))).click()
-
-    def parseOhlcvHistorical(self, s: datetime, e: datetime):
+    def parseHistorical(self, s: datetime, e: datetime):
         url = self.info.getOhlcvHistoricalUrl(s, e)
         resp = requests.get(url)
         jr = json.loads(resp.text)
         return jr['data']['quotes']
 
+    def getInitAt(self):
+        queryTemp = 'SELECT * FROM "quote" WHERE "category"=\'{0}\' AND "name" = \'{1}\'   ORDER BY time ASC LIMIT 1'
+        qstr = queryTemp.format("cryptocurrency", self.info.name)
+        res = query(qstr)
+        points = res.items()
+        if len(points) <= 0:
+            return dateutil.parser.parse(Config.env("coinmarketcap.init.time"))
+        return points
+
     def saveInfluxDB(self, s: datetime, e: datetime):
-        idata = self.parseOhlcvHistorical(s, e)
+        idata = self.parseHistorical(s, e)
         iList = [self.toPoint(q) for q in idata]
         insertData(iList)
 
@@ -69,7 +74,8 @@ class CoinFetcher:
                           "volume": vals['volume'],
                           "market_cap": vals['market_cap'],
                       },
-                      time=tt
+                      time=tt,
+                      source='coinmarketcap'
                       )
         return point
 
@@ -85,9 +91,16 @@ if __name__ == '__main__':
             print(cf)
             self.assertIsNotNone(cf)
 
+        def test_getInitAt(self):
+            cf = CoinFetcher(BuiltInCoin.BTC.getCoinInfo())
+            ans = cf.getInitAt()
+            print(ans)
+            self.assertIsNotNone(ans)
+
 
     tests = [
-        SymbolTest('test_saveInfluxDB'),
+        # SymbolTest('test_saveInfluxDB'),
+        SymbolTest('test_getInitAt'),
 
     ]
     suite = unittest.TestSuite()
