@@ -2,10 +2,12 @@ from Coin import CoinInfo, BuiltInCoin
 from datetime import datetime, date
 from CMCBrowserUtils import getBrowser, WebDriverWait, EC, By
 import requests, json
-from InfluxDBService import insertData, query
+from InfluxDBService import insertData, queryToPoints
 import dateutil.parser
 import Config
 from dto.QuoteDto import Point
+
+measurement = Config.env('influxdb.quote.measurement')
 
 
 # https://web-api.coinmarketcap.com/v1/cryptocurrency/ohlcv/historical?id=1&convert=USD&time_start=1201245530&time_end=1615218330
@@ -25,11 +27,15 @@ class CoinFetcher:
     def getInitAt(self):
         queryTemp = 'SELECT * FROM "quote" WHERE "category"=\'{0}\' AND "name" = \'{1}\'   ORDER BY time ASC LIMIT 1'
         qstr = queryTemp.format("cryptocurrency", self.info.name)
-        res = query(qstr)
-        points = res.items()
+        points = queryToPoints(qstr, measurement)
         if len(points) <= 0:
             return dateutil.parser.parse(Config.env("coinmarketcap.init.time"))
-        return points
+        return dateutil.parser.parse(points[0]['time'])
+
+    def saveUntilNow(self):
+        sAt = self.getInitAt()
+        eAt = datetime.now()
+        self.saveInfluxDB(sAt, eAt)
 
     def saveInfluxDB(self, s: datetime, e: datetime):
         idata = self.parseHistorical(s, e)
@@ -56,7 +62,7 @@ class CoinFetcher:
         # }
         vals = q['quote']['USD']
         tt = dateutil.parser.parse(vals['timestamp'])
-        point = Point(measurement=Config.env('influxdb.quote.measurement'),
+        point = Point(measurement=measurement,
                       tags={
                           "symbol": self.info.symbol,
                           "name": self.info.name,

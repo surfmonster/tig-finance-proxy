@@ -12,9 +12,10 @@ def insertData(ps: []):
     client.write_points(arr)
 
 
-def query(q: str):
+def queryToPoints(q: str, measurement: str):
     rss = client.query(q)
-    return rss
+    ans = list(rss.get_points(measurement=measurement))
+    return ans
 
 
 if __name__ == '__main__':
