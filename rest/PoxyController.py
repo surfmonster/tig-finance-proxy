@@ -3,7 +3,7 @@ import urllib.parse
 from os.path import dirname, basename, isfile, join
 import client.Register
 
-
+from urllib.parse import unquote
 from flask import Flask
 from flask import request
 app = Flask(__name__)
@@ -16,7 +16,12 @@ def index():
 @app.route('/proxy', methods=['GET'])
 def proxy():
     query = request.args.get('q')
-    return query, 201
+    jstr = unquote(query)
+    qobj = json.loads(jstr)
+
+
+
+    return qobj, 201
 
 @app.route('/proxy/gencode', methods=['POST'])
 def buidQueryCode():
