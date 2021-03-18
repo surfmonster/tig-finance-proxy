@@ -24,6 +24,10 @@ class ClientAbs(metaclass=ABCMeta):
     def is_queryed(self, q: QueryDto) -> bool:
         pass
 
+    @abstractmethod
+    def proxy(self, q: QueryDto) -> bool:
+        pass
+
 
 def registerClient(c: ClientAbs):
     clients.append(c)
