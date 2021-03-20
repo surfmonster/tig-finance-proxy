@@ -1,5 +1,6 @@
-from Coin import BuiltInCoin
-from client.Client import ClientAbs, registerClient, QueryDto
+from cmc.Coin import BuiltInCoin
+from client.Client import ClientAbs, QueryDto
+from dto.QuoteDto import ProxyQuote
 
 
 class CMCClientImpl(ClientAbs):
@@ -14,6 +15,5 @@ class CMCClientImpl(ClientAbs):
                 return True
         return False
 
-    def proxy(self, q: QueryDto) -> bool:
+    def proxy(self, q: QueryDto) -> ProxyQuote:
         pass
-

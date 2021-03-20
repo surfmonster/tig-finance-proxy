@@ -4,6 +4,8 @@ from flask import Flask
 import client.CMCClient
 from urllib.parse import unquote
 
+from dto.QuoteDto import ProxyQuote
+
 clients: list = []
 
 
@@ -25,7 +27,7 @@ class ClientAbs(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def proxy(self, q: QueryDto) -> bool:
+    def proxy(self, q: QueryDto) -> ProxyQuote:
         pass
 
 
