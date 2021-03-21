@@ -1,5 +1,8 @@
 from datetime import datetime
-import json
+
+import Config
+
+measurement = Config.env('influxdb.quote.measurement')
 
 
 class Point:
@@ -26,3 +29,24 @@ class ProxyQuote:
     close: float
     volume: float
     market_cap: float
+    timestamp: datetime
+    source : str
+
+    def to_point(self):
+
+        fields: dict = {}
+        for key, value in self.__dict__.items():
+            if key in ['symbol', 'name', 'category', 'timestamp']:
+                continue
+            fields[key] = value
+
+        return Point(measurement=measurement,
+                     tags={
+                         "symbol": self.info.symbol,
+                         "name": self.info.name,
+                         "category": self.category
+                     },
+                     fields=fields,
+                     time=self.timestamp,
+                     source=self.source
+                     )

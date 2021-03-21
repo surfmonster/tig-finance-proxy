@@ -5,3 +5,4 @@
 /myconfig
 /*.log
 /.idea
+/.pytest_cache

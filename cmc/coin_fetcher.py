@@ -1,13 +1,12 @@
 from influxdb.exceptions import InfluxDBClientError
 
-from Coin import CoinInfo, BuiltInCoin
+from cmc.coin import CoinInfo, BuiltInCoin
 from datetime import datetime, date, timedelta
-from CMCBrowserUtils import getBrowser, WebDriverWait, EC, By
 import requests, json
 from InfluxDBService import insertData, queryToPoints, deleteByTags
 import dateutil.parser
 import Config
-from dto.QuoteDto import Point
+from dto.QuoteDto import Point, ProxyQuote
 
 measurement = Config.env('influxdb.quote.measurement')
 
@@ -39,6 +38,12 @@ class CoinFetcher:
         # lAt = lAt + timedelta(days=1)
         return lAt
 
+    def getLast(self) -> ProxyQuote :
+        current_date = datetime.now()
+        today_morning = datetime(current_date.year, current_date.month, current_date.day)
+        before_day = today_morning + timedelta(days=-1)
+        return self._to_proxy_quote(self.parseHistorical(before_day, today_morning)[0])
+
     def saveUntilNow(self):
         sAt = self.getInitAt()
         eAt = datetime.now()
@@ -46,7 +51,7 @@ class CoinFetcher:
 
     def saveInfluxDB(self, s: datetime, e: datetime):
         idata = self.parseHistorical(s, e)
-        iList = [self.toPoint(q) for q in idata]
+        iList = [self._to_proxy_quote(q).to_point() for q in idata]
         insertData(iList)
 
     def deleteAll(self):
@@ -54,48 +59,26 @@ class CoinFetcher:
             "name": self.info.name
         })
 
-    def toPoint(self, q):
-        # {
-        #     "time_open": "2021-03-04T00:00:00.000Z",
-        #     "time_close": "2021-03-04T23:59:59.999Z",
-        #     "time_high": "2021-03-04T02:11:49.000Z",
-        #     "time_low": "2021-03-04T20:13:59.000Z",
-        #     "quote": {
-        #         "USD": {
-        #             "open": 50522.30503036,
-        #             "high": 51735.09105293,
-        #             "low": 47656.92904603,
-        #             "close": 48561.1661539,
-        #             "volume": 52343816679.73,
-        #             "market_cap": 905414104807.24,
-        #             "timestamp": "2021-03-04T23:59:59.999Z"
-        #         }
-        #     }
-        # }
+    def _to_proxy_quote(self, q) -> ProxyQuote:
+        ans = ProxyQuote()
+        ans.symbol = self.info.symbol
+        ans.name = self.info.name
+        ans.category = 'cryptocurrency'
+
+        ans.time_open = q['time_open']
+        ans.time_close = q['time_close']
+        ans.time_high = q['time_high']
+        ans.time_low = q['time_low']
         vals = q['quote']['USD']
-        tt = dateutil.parser.parse(vals['timestamp'])
-        point = Point(measurement=measurement,
-                      tags={
-                          "symbol": self.info.symbol,
-                          "name": self.info.name,
-                          "category": 'cryptocurrency'
-                      },
-                      fields={
-                          "time_open": q['time_open'],
-                          "time_close": q['time_close'],
-                          "time_high": q['time_high'],
-                          "time_low": q['time_low'],
-                          "open": toFloat(vals['open']),
-                          "high": toFloat(vals['high']),
-                          "low": toFloat(vals['low']),
-                          "close": toFloat(vals['close']),
-                          "volume": toFloat(vals['volume']),
-                          "market_cap": toFloat(vals['market_cap']),
-                      },
-                      time=tt,
-                      source='coinmarketcap'
-                      )
-        return point
+        ans.open = toFloat(vals['open'])
+        ans.high = toFloat(vals['high'])
+        ans.low = toFloat(vals['low'])
+        ans.close = toFloat(vals['close'])
+        ans.volume = toFloat(vals['volume'])
+        ans.market_cap = toFloat(vals['market_cap'])
+        ans.timestamp = dateutil.parser.parse(vals['timestamp'])
+        ans.source = 'coinmarketcap'
+        return ans
 
 
 def toFloat(i):

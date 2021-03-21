@@ -30,10 +30,10 @@ class CoinInfo:
         return ans
 
     def getOhlcvHistoricalUrl(self, s: datetime, e: datetime):
-        sts = int( s.timestamp())
+        sts = int(s.timestamp())
         ets = int(e.timestamp())
         temp = 'https://web-api.coinmarketcap.com/v1/cryptocurrency/ohlcv/historical?id={0}&convert=USD&time_end={1}&time_start={2}'
-        return temp.format(self.id, ets,sts)
+        return temp.format(self.id, ets, sts)
 
 
 class BuiltInCoin(Enum):
@@ -48,6 +48,13 @@ class BuiltInCoin(Enum):
 
     def getCoinInfo(self):
         return CoinInfo(self.pid, self.symbol, self.id)
+
+
+def find_by_symbol(symbol: str) -> BuiltInCoin:
+    for bc in BuiltInCoin:
+        if bc.value == symbol:
+            return bc
+    return None
 
 
 def loadSymbols():
@@ -118,7 +125,7 @@ if __name__ == '__main__':
 
         def test_getCoinPageUrl(self):
             c = BuiltInCoin.BTC
-            st = datetime(2021,3,3)
+            st = datetime(2021, 3, 3)
             u = c.getCoinInfo().getOhlcvHistoricalUrl(st, datetime.now())
             print(u)
             self.assertIsNotNone(u)

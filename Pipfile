@@ -10,6 +10,7 @@ influxdb = "*"
 selenium = "*"
 bs4 = "*"
 flask = "*"
+pytest = "*"
 
 [dev-packages]
 
