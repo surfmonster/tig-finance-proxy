@@ -7,5 +7,5 @@ from cmc.coin_fetcher import CoinFetcher
 def test_fetch_today():
     cinfo = BuiltInCoin.BTC.getCoinInfo()
     fetcher = CoinFetcher(cinfo)
-    lastData = fetcher.getLast()
+    lastData = fetcher.get_last()
     print(lastData.__dict__)

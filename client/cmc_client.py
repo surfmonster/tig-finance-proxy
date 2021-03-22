@@ -1,11 +1,17 @@
 from cmc import coin
 from cmc.coin import BuiltInCoin
-from client.Client import ClientAbs, QueryDto
+from client.client import ClientAbs, QueryDto
 from cmc.coin_fetcher import CoinFetcher
 from dto.QuoteDto import ProxyQuote
 
 
 class CMCClientImpl(ClientAbs):
+
+    def save_util_now(self, symbol: str) -> None:
+        TODO
+
+    def clear_all(self, symbol: str) -> None:
+        TODO
 
     def __init__(self):
         super().__init__("CMC")
@@ -19,5 +25,5 @@ class CMCClientImpl(ClientAbs):
         be = coin.find_by_symbol(q.symbol)
         cinfo = be.getCoinInfo()
         cFetcher = CoinFetcher(cinfo)
-        cFetcher.parseHistorical()
-        pass
+        ans = cFetcher.get_last()
+        return ans

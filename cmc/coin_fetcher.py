@@ -1,12 +1,12 @@
 from influxdb.exceptions import InfluxDBClientError
 
 from cmc.coin import CoinInfo, BuiltInCoin
-from datetime import datetime, date, timedelta
+from datetime import datetime, timedelta
 import requests, json
-from InfluxDBService import insertData, queryToPoints, deleteByTags
+from influxdb.influxdb_service import insertData, queryToPoints, deleteByTags
 import dateutil.parser
 import Config
-from dto.QuoteDto import Point, ProxyQuote
+from dto.QuoteDto import ProxyQuote
 
 measurement = Config.env('influxdb.quote.measurement')
 
@@ -38,7 +38,7 @@ class CoinFetcher:
         # lAt = lAt + timedelta(days=1)
         return lAt
 
-    def getLast(self) -> ProxyQuote :
+    def get_last(self) -> ProxyQuote :
         current_date = datetime.now()
         today_morning = datetime(current_date.year, current_date.month, current_date.day)
         before_day = today_morning + timedelta(days=-1)

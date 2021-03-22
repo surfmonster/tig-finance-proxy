@@ -52,7 +52,7 @@ class BuiltInCoin(Enum):
 
 def find_by_symbol(symbol: str) -> BuiltInCoin:
     for bc in BuiltInCoin:
-        if bc.value == symbol:
+        if bc.symbol == symbol:
             return bc
     return None
 

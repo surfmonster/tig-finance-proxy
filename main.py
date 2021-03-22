@@ -1,20 +1,8 @@
-# This is a sample Python script.
+from rest.poxy_controller import get_flask_app
+import client.register
 
-# Press Alt+Shift+X to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+client.register.register_all()
+app = get_flask_app()
 
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+Shift+B to toggle the breakpoint.
-
-
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    print_hi('PyCharm')
-    import dateutil.parser
-    yourdate = dateutil.parser.parse('2007-03-04T23:59:59.999Z')
-    print(yourdate.__class__)
-
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    app.run(host='127.0.0.1', debug=True)

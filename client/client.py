@@ -1,8 +1,5 @@
-import json
 from abc import ABCMeta, abstractmethod
-from flask import Flask
-import client.CMCClient
-from urllib.parse import unquote
+
 
 from dto.QuoteDto import ProxyQuote
 
@@ -30,11 +27,27 @@ class ClientAbs(metaclass=ABCMeta):
     def proxy(self, q: QueryDto) -> ProxyQuote:
         pass
 
+    @abstractmethod
+    def clear_all(self,symbol:str) -> None :
+        pass
 
-def registerClient(c: ClientAbs):
+    @abstractmethod
+    def save_util_now(self,symbol:str) ->None :
+        pass
+
+
+def proxy(q: QueryDto) -> ProxyQuote:
+    for c in clients:
+        cabs: ClientAbs = c
+        if cabs.is_queryed(q):
+            return cabs.proxy(q)
+    raise NameError('not find' + q.symbol)
+
+
+def register_client(c: ClientAbs):
     clients.append(c)
     print(clients)
 
 
-def getClientByChannel(c: str):
+def get_client_by_channel(c: str):
     return filter(lambda x: x.channel == c, clients)

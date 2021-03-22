@@ -1,7 +1,8 @@
-from influxdb import InfluxDBClient
+import influxdb
+
 import Config
 
-client = InfluxDBClient(Config.env('influxdb.url'), Config.envInt('influxdb.port'), Config.env('influxdb.username'),
+client = influxdb.InfluxDBClient(Config.env('influxdb.url'), Config.envInt('influxdb.port'), Config.env('influxdb.username'),
                         Config.env('influxdb.password'), Config.env('influxdb.db'))
 
 INSER_BATCH_SIZE = 1
