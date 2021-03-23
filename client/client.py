@@ -1,6 +1,5 @@
 from abc import ABCMeta, abstractmethod
 
-
 from dto.QuoteDto import ProxyQuote
 
 clients: list = []
@@ -28,19 +27,34 @@ class ClientAbs(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def clear_all(self,symbol:str) -> None :
+    def clear_all(self, q: QueryDto) -> None:
         pass
 
     @abstractmethod
-    def save_util_now(self,symbol:str) ->None :
+    def save_util_now(self, q: QueryDto) -> None:
         pass
 
 
+def clear_all(q: QueryDto) -> None:
+    cabs = _get_client(q)
+    cabs.clear_all(q)
+
+
+def save_all(q: QueryDto) -> None:
+    cabs = _get_client(q)
+    cabs.save_util_now(q)
+
+
 def proxy(q: QueryDto) -> ProxyQuote:
+    cabs = _get_client(q)
+    cabs.proxy(q)
+
+
+def _get_client(q: QueryDto) -> ClientAbs:
     for c in clients:
         cabs: ClientAbs = c
         if cabs.is_queryed(q):
-            return cabs.proxy(q)
+            return cabs
     raise NameError('not find' + q.symbol)
 
 
