@@ -3,12 +3,12 @@ from influxdb.exceptions import InfluxDBClientError
 from cmc.coin import CoinInfo, BuiltInCoin
 from datetime import datetime, timedelta
 import requests, json
-from influxdb.influxdb_service import insertData, queryToPoints, deleteByTags
+from tsdb.influxdb_service import insertData, queryToPoints, deleteByTags
 import dateutil.parser
 import Config
 from dto.QuoteDto import ProxyQuote
 
-measurement = Config.env('influxdb.quote.measurement')
+measurement = Config.env('tsdb.quote.measurement')
 
 
 # https://web-api.coinmarketcap.com/v1/cryptocurrency/ohlcv/historical?id=1&convert=USD&time_start=1201245530&time_end=1615218330

@@ -2,7 +2,7 @@ from datetime import datetime
 
 import Config
 
-measurement = Config.env('influxdb.quote.measurement')
+measurement = Config.env('tsdb.quote.measurement')
 
 
 class Point:
