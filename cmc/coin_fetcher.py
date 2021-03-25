@@ -6,12 +6,13 @@ import requests, json
 from tsdb.influxdb_service import insertData, queryToPoints, deleteByTags
 import dateutil.parser
 import Config
-from dto.QuoteDto import ProxyQuote
+from dto.quote_dto import ProxyQuote
 
-measurement = Config.env('tsdb.quote.measurement')
-
+measurement = Config.env('influxdb.quote.measurement')
 
 # https://web-api.coinmarketcap.com/v1/cryptocurrency/ohlcv/historical?id=1&convert=USD&time_start=1201245530&time_end=1615218330
+
+category = 'cryptocurrency'
 
 
 class CoinFetcher:
@@ -38,7 +39,11 @@ class CoinFetcher:
         # lAt = lAt + timedelta(days=1)
         return lAt
 
-    def get_last(self) -> ProxyQuote :
+    def check_regular_all(self):
+        qsql = f'SELECT * FROM "quote" WHERE "category"=\'{category}\' AND "name" = \'{self.info.name}\' ORDER BY time ASC LIMIT 1'
+
+
+    def get_last_when_now(self) -> ProxyQuote:
         current_date = datetime.now()
         today_morning = datetime(current_date.year, current_date.month, current_date.day)
         before_day = today_morning + timedelta(days=-1)

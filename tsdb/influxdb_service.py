@@ -3,9 +3,11 @@ import influxdb
 import tsdb
 
 import Config
+from dto import quote_dto
 
-client = influxdb.InfluxDBClient(Config.env('influxdb.url'), Config.envInt('influxdb.port'), Config.env('influxdb.username'),
-                             Config.env('influxdb.password'), Config.env('influxdb.db'))
+client = influxdb.InfluxDBClient(Config.env('influxdb.url'), Config.envInt('influxdb.port'),
+                                 Config.env('influxdb.username'),
+                                 Config.env('influxdb.password'), Config.env('influxdb.db'))
 
 INSER_BATCH_SIZE = 1
 
@@ -26,7 +28,7 @@ def insertData(ps: []):
 
 def queryToPoints(q: str, measurement: str):
     rss = client.query(q)
-    ans = list(rss.get_points(measurement=measurement))
+    ans = list(quote_dto.parse_dict(p) for p in rss.get_points(measurement=measurement))
     return ans
 
 
@@ -42,7 +44,6 @@ if __name__ == '__main__':
 
     results = client.query('show series')
     print(results.raw)
-
 
     # client.delete_series(measurement='quote', tags={
     # })

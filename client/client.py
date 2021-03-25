@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 
-from dto.QuoteDto import ProxyQuote
+from dto.quote_dto import ProxyQuote
 
 clients: list = []
 

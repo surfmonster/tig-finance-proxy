@@ -30,7 +30,7 @@ class ProxyQuote:
     volume: float
     market_cap: float
     timestamp: datetime
-    source : str
+    source: str
 
     def to_point(self):
 
@@ -50,3 +50,10 @@ class ProxyQuote:
                      time=self.timestamp,
                      source=self.source
                      )
+
+
+def parse_dict(obj: dict) -> ProxyQuote:
+    ans = ProxyQuote()
+    ans.__dict__.update(**obj)
+    TODO fix datetime type : https://stackoverflow.com/questions/51946571/how-can-i-get-python-3-7-new-dataclass-field-types
+    return ans

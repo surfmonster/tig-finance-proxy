@@ -2,7 +2,7 @@ from cmc import coin
 from cmc.coin import BuiltInCoin
 from client.client import ClientAbs, QueryDto
 from cmc.coin_fetcher import CoinFetcher
-from dto.QuoteDto import ProxyQuote
+from dto.quote_dto import ProxyQuote
 
 
 class CMCClientImpl(ClientAbs):
@@ -25,7 +25,7 @@ class CMCClientImpl(ClientAbs):
 
     def proxy(self, q: QueryDto) -> ProxyQuote:
         cFetcher = CMCClientImpl._gen_fetcher(q)
-        ans = cFetcher.get_last()
+        ans = cFetcher.get_last_when_now()
         return ans
 
     @staticmethod
