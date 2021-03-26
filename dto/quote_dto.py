@@ -1,4 +1,7 @@
+from dataclasses import dataclass
 from datetime import datetime
+
+import dateutil
 
 import Config
 
@@ -15,6 +18,7 @@ class Point:
         self.fields = fields
 
 
+@dataclass
 class ProxyQuote:
     symbol: str
     name: str
@@ -55,5 +59,9 @@ class ProxyQuote:
 def parse_dict(obj: dict) -> ProxyQuote:
     ans = ProxyQuote()
     ans.__dict__.update(**obj)
-    TODO fix datetime type : https://stackoverflow.com/questions/51946571/how-can-i-get-python-3-7-new-dataclass-field-types
+    data_type_map = ans.__annotations__
+    for key, vtype in data_type_map:
+        if vtype is datetime:
+            ans[key] = dateutil.parser.parse( obj.get(key))
+
     return ans

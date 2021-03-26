@@ -33,15 +33,19 @@ class CoinFetcher:
             points = queryToPoints(qstr, measurement)
             if len(points) <= 0:
                 return dateutil.parser.parse(Config.env("coinmarketcap.init.time"))
+            else:
+                return dateutil.parser.parse(points[0]['time'])
         except InfluxDBClientError:
-            pass
-        lAt: datetime = dateutil.parser.parse(points[0]['time'])
-        # lAt = lAt + timedelta(days=1)
-        return lAt
+            return dateutil.parser.parse(Config.env("coinmarketcap.init.time"))
 
     def check_regular_all(self):
-        qsql = f'SELECT * FROM "quote" WHERE "category"=\'{category}\' AND "name" = \'{self.info.name}\' ORDER BY time ASC LIMIT 1'
-
+        qsql = f'SELECT * FROM "quote" WHERE "category"=\'{category}\' AND "name" = \'{self.info.name}\' ORDER BY time ASC'
+        points = queryToPoints(qsql, measurement)
+        lastAt: datetime = None
+        for point in points:
+            if lastAt is None:
+                lastAt = point.timestamp
+                continue
 
     def get_last_when_now(self) -> ProxyQuote:
         current_date = datetime.now()

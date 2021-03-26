@@ -1,7 +1,11 @@
 from abc import ABCMeta, abstractmethod
+from datetime import datetime
 
+import Config
 from dto.quote_dto import ProxyQuote
+from tsdb.influxdb_service import queryToPoints
 
+measurement = Config.env('influxdb.quote.measurement')
 clients: list = []
 
 
@@ -32,6 +36,20 @@ class ClientAbs(metaclass=ABCMeta):
 
     @abstractmethod
     def save_util_now(self, q: QueryDto) -> None:
+        pass
+
+    def check_regular_all(self, q: QueryDto):
+        qsql = f'SELECT * FROM "quote" WHERE "category"=\'{q.category}\' AND "symbol" = \'{q.symbol}\' ORDER BY time ASC'
+        points = queryToPoints(qsql, measurement)
+        lastAt: datetime = self.get_init_at()
+        for point in points:
+            lastAt = self.check_point(lastAt, point)
+
+    @abstractmethod
+    def get_init_at(self) -> datetime:
+        pass
+
+    def check_point(self, lastAt: datetime, point: ProxyQuote) -> datetime:
         pass
 
 
