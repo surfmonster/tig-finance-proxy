@@ -1,3 +1,5 @@
+from typing import Callable
+
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 
@@ -5,8 +7,8 @@ import dateutil
 from influxdb.exceptions import InfluxDBClientError
 
 import Config
-from cmc.coin import CoinInfo
-from tsdb.influxdb_service import queryToPoints
+from dto.quote_dto import ProxyQuote
+from tsdb.influxdb_service import queryToPoints, deleteByTags
 
 measurement = Config.env('influxdb.quote.measurement')
 
@@ -16,32 +18,41 @@ class BaseDao(metaclass=ABCMeta):
         self.category = category
         self.name = name
 
-    def getInitAt(self):
+    def get_first_save_at(self):
         queryTemp = 'SELECT * FROM "quote" WHERE "category"=\'{0}\' AND "name" = \'{1}\'   ORDER BY time ASC LIMIT 1'
         qstr = queryTemp.format("cryptocurrency", self.info.name)
         try:
             points = queryToPoints(qstr, measurement)
             if len(points) <= 0:
-                return dateutil.parser.parse(Config.env("coinmarketcap.init.time"))
+                return self.get_init_at()
             else:
                 return dateutil.parser.parse(points[0]['time'])
         except InfluxDBClientError:
-            return dateutil.parser.parse(Config.env("coinmarketcap.init.time"))
+            return self.get_init_at()
 
     def saveUntilNow(self):
-        sAt = self.getInitAt()
+        sAt = self.get_first_save_at()
         eAt = datetime.now()
         self.saveInfluxDB(sAt, eAt)
 
-    def check_regular_all(self):
+    def check_regular_all(self, row_apply: Callable[[datetime, datetime, datetime, ProxyQuote], datetime]):
         qsql = f'SELECT * FROM "quote" WHERE "category"=\'{self.category}\' AND "name" = \'{self.name}\' ORDER BY time ASC'
         points = queryToPoints(qsql, measurement)
-        lastAt: datetime = None
+        init_at = self.get_init_at()
+        now = datetime.now()
+        last_check_at: datetime = None
         for point in points:
-            if lastAt is None:
-                lastAt = point.timestamp
-                continue
+            last_check_at = row_apply(init_at, now, last_check_at, point)
+
+    def deleteAll(self):
+        deleteByTags(measurement=measurement, tags={
+            "name": self.info.name
+        })
 
     @abstractmethod
-    def save_all(self, quotes: list,in_type:type):
+    def save_all(self, quotes: list, in_type: type):
+        pass
+
+    @abstractmethod
+    def get_init_at(self) -> datetime:
         pass

@@ -1,12 +1,12 @@
 from influxdb.exceptions import InfluxDBClientError
-
+from typing import Sequence
 from cmc.coin import CoinInfo, BuiltInCoin
 from datetime import datetime, timedelta
 import requests, json
-from tsdb.influxdb_service import insertData, queryToPoints, deleteByTags
 import dateutil.parser
 import Config
 from dto.quote_dto import ProxyQuote
+from utils import coin_utils
 
 measurement = Config.env('influxdb.quote.measurement')
 
@@ -20,33 +20,33 @@ class CoinFetcher:
     def __init__(self, ci: CoinInfo):
         self.info = ci
 
-    def parseHistorical(self, s: datetime, e: datetime) ->:
+    def parseHistorical(self, s: datetime, e: datetime) -> Sequence[ProxyQuote]:
         url = self.info.getOhlcvHistoricalUrl(s, e)
         resp = requests.get(url)
         jr = json.loads(resp.text)
         idata = jr['data']['quotes']
-        return [self._to_proxy_quote(q) for q in idata]
+        return [coin_utils.to_proxy_quote(q, self.info.symbol, self.info.name) for q in idata]
 
     def get_last_when_now(self) -> ProxyQuote:
         current_date = datetime.now()
         today_morning = datetime(current_date.year, current_date.month, current_date.day)
         before_day = today_morning + timedelta(days=-1)
-        return self._to_proxy_quote(self.parseHistorical(before_day, today_morning)[0])
-
-    def saveInfluxDB(self, s: datetime, e: datetime):
-        idata = self.parseHistorical(s, e)
-        iList = [self._to_proxy_quote(q).to_point() for q in idata]
-        insertData(iList)
-
-    def deleteAll(self):
-        deleteByTags(measurement=measurement, tags={
-            "name": self.info.name
-        })
+        return self.parseHistorical(before_day, today_morning)[0]
 
 
 def toFloat(i):
     ans = float(i)
     return ans
+
+
+_fetcher_map = {}
+
+
+def get_built_in(bi: BuiltInCoin) -> CoinFetcher:
+    if bi not in _fetcher_map.keys():
+        _f = CoinFetcher(bi.getCoinInfo())
+        _fetcher_map[bi] = _f
+    return _fetcher_map.get(bi)
 
 
 if __name__ == '__main__':

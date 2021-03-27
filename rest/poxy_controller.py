@@ -40,10 +40,10 @@ def proxyByPost():
     return respo.__dict__, 201
 
 
-@app.route('/proxy/saveall', methods=['POST'])
-def save_all():
+@app.route('/proxy/save/util_now', methods=['POST'])
+def save_util_now():
     qobj = request.json
-    client.save_all(client.QueryDto(**qobj))
+    client.save_util_now(client.QueryDto(**qobj))
     return None, 201
 
 

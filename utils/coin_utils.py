@@ -1,12 +1,14 @@
 import dateutil
 
+import Config
+from client.client import QueryDto
 from dto.quote_dto import ProxyQuote
 
 
-def to_proxy_quote(q:dict) -> ProxyQuote:
+def to_proxy_quote(q: dict, symbol: str, name: str) -> ProxyQuote:
     ans = ProxyQuote()
-    ans.symbol = self.info.symbol
-    ans.name = self.info.name
+    ans.symbol = symbol
+    ans.name = name
     ans.category = 'cryptocurrency'
 
     ans.time_open = q['time_open']
@@ -28,3 +30,7 @@ def to_proxy_quote(q:dict) -> ProxyQuote:
 def toFloat(i):
     ans = float(i)
     return ans
+
+
+def get_init_at():
+    return dateutil.parser.parse(Config.env("coinmarketcap.init.time"))

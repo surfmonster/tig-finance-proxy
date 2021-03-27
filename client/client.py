@@ -38,12 +38,9 @@ class ClientAbs(metaclass=ABCMeta):
     def save_util_now(self, q: QueryDto) -> None:
         pass
 
+    @abstractmethod
     def check_regular_all(self, q: QueryDto):
-        qsql = f'SELECT * FROM "quote" WHERE "category"=\'{q.category}\' AND "symbol" = \'{q.symbol}\' ORDER BY time ASC'
-        points = queryToPoints(qsql, measurement)
-        lastAt: datetime = self.get_init_at()
-        for point in points:
-            lastAt = self.check_point(lastAt, point)
+        pass
 
     @abstractmethod
     def get_init_at(self) -> datetime:
@@ -58,7 +55,7 @@ def clear_all(q: QueryDto) -> None:
     cabs.clear_all(q)
 
 
-def save_all(q: QueryDto) -> None:
+def save_util_now(q: QueryDto) -> None:
     cabs = _get_client(q)
     cabs.save_util_now(q)
 
