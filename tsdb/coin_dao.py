@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Sequence
 
 import dateutil
 from influxdb.exceptions import InfluxDBClientError
@@ -15,16 +16,15 @@ category = 'cryptocurrency'
 
 class CoinDao(BaseDao):
 
-
-
     def __init__(self, ci: CoinInfo):
         self.info = ci
         super().__init__(category, ci.name)
 
-    def save_all(self, quotes: list, in_type: type):
-        if in_type is ProxyQuote:
-            insertData(quotes)
-        raise NotImplementedError('not support ' + in_type)
+    def save_all(self, quotes: Sequence[ProxyQuote]):
+        insertData(quotes)
+
+    def get_init_at(self) -> datetime:
+        return dateutil.parser.parse(Config.env("coinmarketcap.init.time"))
 
 
 _dao_map = {}

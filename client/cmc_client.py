@@ -24,7 +24,7 @@ class CMCClientImpl(ClientAbs):
 
     def save_util_now(self, q: QueryDto) -> None:
         dao, cFetcher = _get_kit(q)
-        sAt = dao.get_first_save_at()
+        sAt = dao.get_Last_save_at()
         eAt = datetime.now()
         CMCClientImpl._save_between(q, sAt, eAt)
 
@@ -32,7 +32,7 @@ class CMCClientImpl(ClientAbs):
     def _save_between(q: QueryDto, s_at: datetime, e_at: datetime) -> datetime:
         dao, cFetcher = _get_kit(q)
         f_list = cFetcher.parseHistorical(s_at, e_at)
-        dao.save_all(f_list, ProxyQuote)
+        dao.save_all(f_list)
         return f_list[-1].timestamp
 
     def get_init_at(self) -> datetime:

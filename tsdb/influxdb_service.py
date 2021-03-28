@@ -1,9 +1,12 @@
+from typing import Sequence
+
 import influxdb
 
 import tsdb
 
 import Config
 from dto import quote_dto
+from dto.quote_dto import ProxyQuote
 
 client = influxdb.InfluxDBClient(Config.env('influxdb.url'), Config.envInt('influxdb.port'),
                                  Config.env('influxdb.username'),
@@ -12,21 +15,21 @@ client = influxdb.InfluxDBClient(Config.env('influxdb.url'), Config.envInt('infl
 INSER_BATCH_SIZE = 1
 
 
-def insertData(ps: []):
+def insertData(ps: Sequence[ProxyQuote]):
     # arr = [p.__dict__ for p in ps]
     # # js = json.dumps(arr)
     # print(arr)
     # client.write_points(points=arr,batch_size=100)
     iList = []
     for i in range(len(ps)):
-        iList.append(ps[i].__dict__)
+        iList.append(ps[i].to_point().__dict__)
         if len(iList) >= INSER_BATCH_SIZE:
             print(iList)
             client.write_points(points=iList, batch_size=100)
             iList = []
 
 
-def queryToPoints(q: str, measurement: str):
+def queryToPoints(q: str, measurement: str)->Sequence[ProxyQuote]:
     rss = client.query(q)
     ans = list(quote_dto.parse_dict(p) for p in rss.get_points(measurement=measurement))
     return ans

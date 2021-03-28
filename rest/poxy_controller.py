@@ -44,7 +44,7 @@ def proxyByPost():
 def save_util_now():
     qobj = request.json
     client.save_util_now(client.QueryDto(**qobj))
-    return None, 201
+    return 'OK', 201
 
 
 @app.route('/proxy/clearall', methods=['POST'])
@@ -57,7 +57,7 @@ def clear_all():
 @app.route('/proxy/reimport', methods=['POST'])
 def reimport_all():
     clear_all()
-    save_all()
+    save_util_now()
     return None, 201
 
 

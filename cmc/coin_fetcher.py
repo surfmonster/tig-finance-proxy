@@ -1,10 +1,11 @@
-from influxdb.exceptions import InfluxDBClientError
-from typing import Sequence
-from cmc.coin import CoinInfo, BuiltInCoin
 from datetime import datetime, timedelta
-import requests, json
-import dateutil.parser
+from typing import Sequence
+
+import json
+import requests
+
 import Config
+from cmc.coin import CoinInfo, BuiltInCoin
 from dto.quote_dto import ProxyQuote
 from utils import coin_utils
 
@@ -34,9 +35,7 @@ class CoinFetcher:
         return self.parseHistorical(before_day, today_morning)[0]
 
 
-def toFloat(i):
-    ans = float(i)
-    return ans
+
 
 
 _fetcher_map = {}

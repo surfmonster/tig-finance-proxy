@@ -4,8 +4,9 @@ from datetime import datetime
 import dateutil
 
 import Config
+from utils import comm_utils
 
-measurement = Config.env('tsdb.quote.measurement')
+measurement = Config.env('influxdb.quote.measurement')
 
 
 class Point:
@@ -18,7 +19,7 @@ class Point:
         self.fields = fields
 
 
-@dataclass
+# @dataclass
 class ProxyQuote:
     symbol: str
     name: str
@@ -36,18 +37,25 @@ class ProxyQuote:
     timestamp: datetime
     source: str
 
+    def hash_id(self):
+        return comm_utils.dict_hash(self.__dict__)
+
     def to_point(self):
 
         fields: dict = {}
         for key, value in self.__dict__.items():
             if key in ['symbol', 'name', 'category', 'timestamp']:
                 continue
+            if type(value) is int:
+                value = comm_utils.to_float(value)
+                print(f'convert <<<float>>> {key} {value} is int')
             fields[key] = value
+        fields['id'] = self.hash_id()
 
         return Point(measurement=measurement,
                      tags={
-                         "symbol": self.info.symbol,
-                         "name": self.info.name,
+                         "symbol": self.symbol,
+                         "name": self.name,
                          "category": self.category
                      },
                      fields=fields,
@@ -58,10 +66,19 @@ class ProxyQuote:
 
 def parse_dict(obj: dict) -> ProxyQuote:
     ans = ProxyQuote()
-    ans.__dict__.update(**obj)
     data_type_map = ans.__annotations__
-    for key, vtype in data_type_map:
-        if vtype is datetime:
-            ans[key] = dateutil.parser.parse( obj.get(key))
+    for key, vtype in data_type_map.items():
+        if key == 'timestamp':
+            ans.timestamp = dateutil.parser.parse(obj['time'])
+            del obj['time']
+            continue
+        try:
+            if vtype is datetime:
+                obj[key] = dateutil.parser.parse(obj.get(key))
+        except Exception as e:
+            print('error:' + key)
+            print(e)
+            raise e
 
+    ans.__dict__.update(**obj)
     return ans
