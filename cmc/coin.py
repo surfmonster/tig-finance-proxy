@@ -4,6 +4,8 @@ from datetime import datetime
 from enum import Enum
 import time
 
+import Config
+
 HOST = 'https://coinmarketcap.com/'
 COINS_PAGE_URL: str = HOST + 'coins/?page=%i'
 Historical_SUBFIX = 'historical-data/'
@@ -32,7 +34,7 @@ class CoinInfo:
     def getOhlcvHistoricalUrl(self, s: datetime, e: datetime):
         sts = int(s.timestamp())
         ets = int(e.timestamp())
-        temp = 'https://web-api.coinmarketcap.com/v1/cryptocurrency/ohlcv/historical?id={0}&convert=USD&time_end={1}&time_start={2}'
+        temp = Config.env('coinmarketcap.ohlcv.urltemp')
         return temp.format(self.id, ets, sts)
 
 

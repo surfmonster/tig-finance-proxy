@@ -11,8 +11,6 @@ from utils import coin_utils
 
 measurement = Config.env('influxdb.quote.measurement')
 
-# https://web-api.coinmarketcap.com/v1/cryptocurrency/ohlcv/historical?id=1&convert=USD&time_start=1201245530&time_end=1615218330
-
 category = 'cryptocurrency'
 
 
